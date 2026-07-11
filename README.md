@@ -16,7 +16,6 @@ A visual, drag-and-drop bookmark manager that replaces every new tab in Chrome. 
 - **Board locks** — protect individual boards with a 6-digit master password (with a recovery password). Locked-board domains are redirected away in normal Chrome tabs.
 - **Privacy blur** — toggle privacy mode to blur your bookmarks at a glance.
 - **Private-window opening** — open links in an incognito/private window.
-- **Customizable layout** — choose how many links show per board, set a wallpaper, and adjust home-page settings.
 - **Local-first** — your workspace is stored locally in Chrome.
 
 ## Install as a local (unpacked) extension
@@ -25,7 +24,7 @@ A visual, drag-and-drop bookmark manager that replaces every new tab in Chrome. 
 2. Open **`chrome://extensions`** in Chrome (or a Chromium-based browser like Edge/Brave).
 3. Turn on **Developer mode** (toggle in the top-right corner).
 4. Click **Load unpacked**.
-5. Select this project folder (the one containing `manifest.json`).
+5. Select this project folder
 6. Open a **new tab** to start using 9 Bookmark.
 
 To update after changing files, return to `chrome://extensions` and click the **reload** icon on the 9 Bookmark card.
@@ -38,13 +37,3 @@ To update after changing files, return to `chrome://extensions` and click the **
 
 You can reassign shortcuts in Chrome via **Settings → Customize** (or `chrome://extensions/shortcuts`).
 
-## Board locks & incognito
-
-Locked-board domains are redirected away in normal Chrome tabs. To use the optional incognito exception:
-
-1. Turn on **Allow locks in incognito** in the extension's **Settings**.
-2. Enable **Allow in Incognito** for 9 Bookmark in Chrome's extension details (`chrome://extensions` → 9 Bookmark → **Details**).
-
-## Permissions
-
-9 Bookmark requests the following permissions: `bookmarks`, `storage`, `tabs`, `contextMenus`, `notifications`, `scripting`, and host access (`<all_urls>`) to support importing, quick-saving, and lock redirects.
