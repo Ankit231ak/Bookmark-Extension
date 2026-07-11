@@ -5,6 +5,8 @@ A visual, drag-and-drop bookmark manager that replaces every new tab in Chrome. 
 <!-- Reference image — replace the path below with your screenshot -->
 ![9 Bookmark preview](9-bookmark/Reference%20image.png)
 
+### New Feature for Lock the Website
+
 ## Features
 
 - **New-tab replacement** — 9 Bookmark opens on every new tab, giving you an at-a-glance workspace of your links.
