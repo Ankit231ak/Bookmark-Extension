@@ -3,7 +3,7 @@
   "name": "9 Bookmark",
   "version": "1.0.0",
   "description": "A visual, drag-and-drop bookmark manager for every new tab.",
-  "permissions": ["bookmarks", "storage", "tabs", "contextMenus", "notifications", "scripting"],
+  "permissions": ["bookmarks", "storage", "tabs", "contextMenus", "notifications", "scripting", "webNavigation"],
   "host_permissions": ["<all_urls>"],
   "icons": { "128": "logo.png" },
   "chrome_url_overrides": { "newtab": "newtab.html" },
@@ -11,6 +11,10 @@
     "quick-save": {
       "suggested_key": { "default": "Ctrl+Shift+Y", "mac": "MacCtrl+Shift+Y" },
       "description": "Save the current page to 9 Bookmark"
+    },
+    "lock-sites": {
+      "suggested_key": { "default": "Ctrl+Shift+L", "mac": "MacCtrl+Shift+L" },
+      "description": "Lock all sites in locked boards again"
     }
   },
   "background": { "service_worker": "background.js" }

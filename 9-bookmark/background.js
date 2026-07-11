@@ -74,8 +74,91 @@ function popupMessage(status) {
   return 'This page can’t be saved';
 }
 
+// --- Locked-site blocking ---------------------------------------------------
+
+// Lowercase a hostname and drop a leading "www." so subdomains match cleanly.
+function baseHost(host) {
+  return host.replace(/^www\./i, '').toLowerCase();
+}
+
+// Cache of blocked domains; invalidated whenever the workspace changes.
+let domainCache = null;
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.workspace) domainCache = null;
+});
+
+// Set of base domains that belong to locked boards (blocked browser-wide).
+async function blockedDomains() {
+  if (domainCache) return domainCache;
+  const { workspace } = await chrome.storage.local.get('workspace');
+  const set = new Set();
+  workspace?.pages?.forEach((p) => p.boards?.forEach((b) => {
+    if (!b.locked) return;
+    b.links?.forEach((l) => {
+      try { set.add(baseHost(new URL(l[1]).hostname)); } catch { /* skip bad url */ }
+    });
+  }));
+  domainCache = set;
+  return set;
+}
+
+// Domains temporarily unlocked for this browser session (clears on restart).
+async function sessionUnlocked() {
+  const { unlockedDomains = [] } = await chrome.storage.session.get('unlockedDomains');
+  return new Set(unlockedDomains);
+}
+
+// Return the blocked base domain that navHost belongs to, or null.
+function matchBlocked(navHost, domains) {
+  for (const d of domains) {
+    if (navHost === d || navHost.endsWith('.' + d)) return d;
+  }
+  return null;
+}
+
+// Build the URL of the black gate page for a target navigation.
+function gateUrl(target, domain) {
+  return chrome.runtime.getURL('gate.html')
+    + `?to=${encodeURIComponent(target)}&domain=${encodeURIComponent(domain)}`;
+}
+
+// Redirect navigations to locked domains to the password gate.
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  if (details.frameId !== 0) return; // top-level frame only
+  let url;
+  try { url = new URL(details.url); } catch { return; }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+  const domains = await blockedDomains();
+  if (!domains.size) return;
+  const match = matchBlocked(baseHost(url.hostname), domains);
+  if (!match) return;
+  const unlocked = await sessionUnlocked();
+  if (unlocked.has(match)) return;
+  chrome.tabs.update(details.tabId, { url: gateUrl(details.url, match) });
+});
+
+// Clear session unlocks and re-gate any open tab sitting on a locked domain.
+async function relockSites() {
+  await chrome.storage.session.set({ unlockedDomains: [] });
+  const domains = await blockedDomains();
+  if (!domains.size) {
+    notify('9 Bookmark', 'No locked sites to lock');
+    return;
+  }
+  const tabs = await chrome.tabs.query({ url: ['http://*/*', 'https://*/*'] });
+  for (const tab of tabs) {
+    if (!tab.url || tab.id == null) continue;
+    let host;
+    try { host = baseHost(new URL(tab.url).hostname); } catch { continue; }
+    const match = matchBlocked(host, domains);
+    if (match) chrome.tabs.update(tab.id, { url: gateUrl(tab.url, match) });
+  }
+  notify('9 Bookmark', 'Locked sites are locked again');
+}
+
 // Keyboard commands.
 chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'lock-sites') return relockSites();
   if (command !== 'quick-save') return;
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const status = await saveQuick(tab?.title, tab?.url);
